@@ -91,7 +91,7 @@ struct Onboarding: View {
             .pickerStyle(.segmented)
             tip("Play a song in your music app", "Automatic follows the app that is playing. You can also choose Spotify or Apple Music directly.", icon: "music.note")
             tip("Allow Automation when asked", "macOS will ask before Kanta reads or controls your music app. No permission is requested during setup.", icon: "lock.shield")
-            tip("Find Kanta in the menu bar", "The waveform menu opens your player, lyrics, and preferences.", icon: "waveform")
+            tip("Find Kanta in the menu bar", "The lyrics menu opens your player, lyrics, and preferences.", icon: "text.quote")
         }
     }
 

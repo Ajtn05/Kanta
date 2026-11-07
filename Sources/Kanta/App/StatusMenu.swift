@@ -11,7 +11,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     init(app: KantaApp) {
         self.app = app
         super.init()
-        item.button?.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "Kanta")
+        item.button?.image = NSImage(systemSymbolName: "text.quote", accessibilityDescription: "Kanta")
         item.button?.imagePosition = .imageOnly
         item.button?.toolTip = "Kanta"
         menu.delegate = self

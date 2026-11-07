@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Kanta}",
+            "name": "Debug Kanta",
+            "target": "Kanta",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Kanta"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Kanta}",
+            "name": "Release Kanta",
+            "target": "Kanta",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Kanta"
+        }
+    ]
+}

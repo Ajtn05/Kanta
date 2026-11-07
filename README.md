@@ -36,7 +36,7 @@ Download this repository with **Code → Download ZIP**, or clone it. Open Termi
 make run
 ```
 
-This builds and opens Kanta. Complete the welcome setup, then start a song in Spotify or Apple Music and allow Automation access when macOS asks. Use the waveform icon in the menu bar to choose a layout, run setup again, or open Preferences. Setup saves your choices when you select **Open My Player**; closing it preserves your previous settings.
+This builds and opens Kanta. Complete the welcome setup, then start a song in Spotify or Apple Music and allow Automation access when macOS asks. Use the lyrics icon in the menu bar to choose a layout, run setup again, or open Preferences. Setup saves your choices when you select **Open My Player**; closing it preserves your previous settings.
 
 To try the interface without a music app, build and open the offline demo:
 

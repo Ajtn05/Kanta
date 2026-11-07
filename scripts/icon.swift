@@ -1,6 +1,6 @@
 import AppKit
 
-// Drawn at each native icon size so the rings remain legible at 16 pt.
+// Drawn at each native icon size, with simpler lyric lines for small icons.
 let destination = URL(fileURLWithPath: CommandLine.arguments[1])
 let rgb = CGColorSpaceCreateDeviceRGB()
 
@@ -27,21 +27,52 @@ func draw(_ pixels: Int) -> Data {
     context.drawLinearGradient(gradient, start: CGPoint(x: 195, y: 95), end: CGPoint(x: 850, y: 930),
                                options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
 
-    let disc = CGRect(x: 232, y: 232, width: 560, height: 560)
-    context.setFillColor(CGColor(red: 0.055, green: 0.14, blue: 0.17, alpha: 0.72))
-    context.fillEllipse(in: disc)
-    context.setStrokeColor(CGColor(red: 0.79, green: 0.92, blue: 0.82, alpha: 0.24))
-    context.setLineWidth(9)
-    for inset in [0.0, 34, 73, 113, 153] {
-        context.strokeEllipse(in: disc.insetBy(dx: inset, dy: inset))
+    let small = pixels <= 32
+    let cream = CGColor(red: 0.85, green: 0.95, blue: 0.89, alpha: 1)
+    let peach = CGColor(red: 1, green: 0.80, blue: 0.57, alpha: 1)
+
+    func lyricLine(x: CGFloat, y: CGFloat, width: CGFloat, weight: CGFloat,
+                   color: CGColor, opacity: CGFloat = 1) {
+        context.setAlpha(opacity)
+        context.setStrokeColor(color)
+        context.setLineWidth(weight)
+        context.setLineCap(.round)
+        context.move(to: CGPoint(x: x, y: y))
+        context.addLine(to: CGPoint(x: x + width, y: y))
+        context.strokePath()
+        context.setAlpha(1)
     }
 
-    context.setFillColor(CGColor(red: 1, green: 0.78, blue: 0.53, alpha: 1))
-    let bars: [CGFloat] = [81, 143, 221, 151, 94]
-    for (index, height) in bars.enumerated() {
-        let rect = CGRect(x: CGFloat(387 + index * 53), y: 512 - height / 2, width: 37, height: height)
-        context.addPath(CGPath(roundedRect: rect, cornerWidth: 18, cornerHeight: 18, transform: nil))
+    // Surrounding lyrics recede above and below the current line.
+    if !small {
+        lyricLine(x: 398, y: 728, width: 228, weight: 30, color: cream, opacity: 0.20)
+        lyricLine(x: 368, y: 300, width: 288, weight: 30, color: cream, opacity: 0.20)
+    }
+    lyricLine(x: 302, y: 630, width: 420, weight: small ? 48 : 34, color: cream, opacity: 0.48)
+    lyricLine(x: 322, y: 398, width: 380, weight: small ? 48 : 34, color: cream, opacity: 0.48)
+
+    if !small {
+        context.setFillColor(CGColor(red: 0.025, green: 0.12, blue: 0.15, alpha: 0.30))
+        context.addPath(CGPath(roundedRect: CGRect(x: 220, y: 444, width: 584, height: 142),
+                               cornerWidth: 52, cornerHeight: 52, transform: nil))
         context.fillPath()
+    }
+
+    // A musical note leads the warm, highlighted lyric, like a karaoke cursor.
+    context.setFillColor(peach)
+    context.fillEllipse(in: CGRect(x: 266, y: 474, width: 78, height: 58))
+    context.setStrokeColor(peach)
+    context.setLineWidth(28)
+    context.move(to: CGPoint(x: 330, y: 506))
+    context.addLine(to: CGPoint(x: 330, y: 566))
+    context.addLine(to: CGPoint(x: 376, y: 552))
+    context.strokePath()
+
+    if small {
+        lyricLine(x: 430, y: 514, width: 306, weight: 58, color: peach)
+    } else {
+        lyricLine(x: 430, y: 514, width: 116, weight: 46, color: peach)
+        lyricLine(x: 604, y: 514, width: 132, weight: 46, color: peach)
     }
     return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .png, properties: [:])!
 }
@@ -61,3 +92,6 @@ for (type, size) in formats {
     icon.append(chunk(type, bytes: draw(size)))
 }
 try chunk("icns", bytes: icon).write(to: destination)
+if CommandLine.arguments.count > 2 {
+    try draw(256).write(to: URL(fileURLWithPath: CommandLine.arguments[2]))
+}
