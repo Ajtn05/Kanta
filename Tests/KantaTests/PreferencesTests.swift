@@ -10,20 +10,24 @@ final class PreferencesTests: XCTestCase {
         settings.lyricSize = 28
         settings.background = .solid
         settings.seekOnLyricClick = false
+        settings.combinedLyricsLayout = .fill
         let encoded = try JSONEncoder().encode(settings)
         let restored = try JSONDecoder().decode(SettingsValues.self, from: encoded)
         XCTAssertEqual(restored.background, .solid)
         XCTAssertFalse(restored.seekOnLyricClick)
+        XCTAssertEqual(restored.combinedLyricsLayout, .fill)
 
         var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
         legacy.removeValue(forKey: "storedBackground")
         legacy.removeValue(forKey: "storedSeekOnLyricClick")
+        legacy.removeValue(forKey: "storedCombinedLyricsLayout")
         let migrated = try JSONDecoder().decode(SettingsValues.self, from: JSONSerialization.data(withJSONObject: legacy))
         XCTAssertEqual(migrated.theme, .dark)
         XCTAssertEqual(migrated.layout, .lyrics)
         XCTAssertEqual(migrated.lyricSize, 28)
         XCTAssertEqual(migrated.background, .material)
         XCTAssertTrue(migrated.seekOnLyricClick)
+        XCTAssertEqual(migrated.combinedLyricsLayout, .compact)
     }
 
     @MainActor
@@ -43,6 +47,7 @@ final class PreferencesTests: XCTestCase {
         XCTAssertEqual(original.values.layout, .artwork)
         original.select(.lyrics)
         original.values.source = .music
+        original.values.combinedLyricsLayout = .fill
         original.values.globalOffset = 0.1
         original.adjustOffset(for: track, by: 0.25)
         original.adjustOffset(for: track, by: 0.1)
@@ -52,6 +57,7 @@ final class PreferencesTests: XCTestCase {
         let restored = Preferences(defaults: defaults)
         XCTAssertEqual(restored.values.layout, .lyrics)
         XCTAssertEqual(restored.values.source, .music)
+        XCTAssertEqual(restored.values.combinedLyricsLayout, .fill)
         XCTAssertEqual(restored.offset(for: track), 0.45, accuracy: 0.0001)
         XCTAssertEqual(restored.frame(for: .artwork), artwork)
         XCTAssertEqual(restored.frame(for: .lyrics), lyrics)

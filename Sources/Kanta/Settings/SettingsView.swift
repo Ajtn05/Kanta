@@ -102,12 +102,21 @@ struct SettingsView: View {
                 Picker("Alignment", selection: $preferences.values.lyricAlignment) {
                     ForEach(LyricAlignment.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
-                Stepper("Combined preview lines  \(preferences.values.lyricLines)", value: $preferences.values.lyricLines, in: 1...5)
                 Text("Lyrics Only fits text to the window width and shows more lines as you make it taller.")
                     .font(.caption).foregroundStyle(.secondary)
                 Picker("Highlight", selection: $preferences.values.highlight) {
                     ForEach(Highlight.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
+            }
+            Section("Combined MiniPlayer") {
+                Picker("Lyric layout", selection: $preferences.values.combinedLyricsLayout) {
+                    ForEach(CombinedLyricsLayout.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }
+                if preferences.values.combinedLyricsLayout == .compact {
+                    Stepper("Preview lines  \(preferences.values.lyricLines)", value: $preferences.values.lyricLines, in: 1...5)
+                }
+                Text("Compact keeps a small preview. Fill available space uses your font size and shows more lines as the window grows.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("Lyrics Overlay") {
                 settingSlider("Background opacity", value: $preferences.values.lyricOpacity, range: 0...1, step: 0.05, format: .percent)

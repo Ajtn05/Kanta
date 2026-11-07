@@ -98,9 +98,6 @@ struct LyricPreview: View {
                                     .transition(.opacity)
                             }
                         }
-                        if !lyrics.synchronized && wrapsSingleLine {
-                            Eyebrow(title: "Plain lyrics").foregroundStyle(.secondary)
-                        }
                     }
                     .animation(options.animate && !reduceMotion ? .easeInOut(duration: 0.22) : nil, value: current)
                 }

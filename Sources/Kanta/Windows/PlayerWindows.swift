@@ -86,8 +86,8 @@ final class PlayerWindows: NSObject, NSWindowDelegate {
         mini = panel
         panel.title = layout.title
         panel.contentAspectRatio = layout == .artwork ? CGSize(width: 1, height: 1) : .zero
-        restore(panel, for: layout, near: oldFrame, animate: animated)
         configureContent(panel, layout: layout)
+        restore(panel, for: layout, near: oldFrame, animate: animated)
     }
 
     private func makePanel(for layout: PlayerLayout) -> PlayerPanel {

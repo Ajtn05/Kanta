@@ -85,9 +85,11 @@ Open either desktop music app and play a song. When prompted, grant Kanta Automa
 
 Choose a layout from the menu bar or right-click any interactive player. Drag the bottom-right grip to resize. Each layout remembers its own position and size. Toggle **Lyrics Click-Through** from the menu bar to regain mouse interaction with a click-through overlay.
 
+Windows stop shrinking at a usable minimum: Artwork 240 × 240, Compact 360 × 96, Lyrics Only 280 × 88, Combined 380 × 280 (520 points wide when set to Horizontal), and Full Lyrics 400 × 380 points. Saved windows smaller than these limits expand when reopened.
+
 Use **Find or Paste Lyrics…** to retry LRCLIB or save a local copy of plain or timestamped lyrics. In **Adjust Synchronization**, positive offsets make lines appear earlier and negative offsets make them appear later. Track offsets are saved separately from the global offset. In Preferences, set global shortcuts, choose a theme, adjust type and opacity, and enable menu-bar lyrics or Launch at Login.
 
-Choose Frosted, Solid, or Liquid Glass in Appearance. Liquid Glass uses the native effect on macOS 26 and later with a supported build toolchain, and falls back to Frosted on earlier systems. Turn off **Seek when clicking lyrics** in Lyrics preferences to keep lyric clicks from moving playback. Lyrics Only keeps at least 16 points of horizontal padding and 12 points of vertical padding, with a minimum window of 280 × 88 points. Long lines shrink to readable type, then wrap if necessary. The Combined preview line setting applies to Combined only. Drag the Full Lyrics header to move that window; its close button or Escape hides it.
+Choose Frosted, Solid, or Liquid Glass in Appearance. Liquid Glass uses the native effect on macOS 26 and later with a supported build toolchain, and falls back to Frosted on earlier systems. Turn off **Seek when clicking lyrics** in Lyrics preferences to keep lyric clicks from moving playback. Lyrics Only keeps at least 16 points of horizontal padding and 12 points of vertical padding, with a minimum window of 280 × 88 points. Long lines shrink to readable type, then wrap if necessary. In **Lyrics → Combined MiniPlayer**, choose **Compact** for a small preview with a set line count, or **Fill available space** to use your chosen font size and fit more lines as the window grows. Combined shows **No live lyrics** beside the playback area when only untimed lyrics are available. Drag the Full Lyrics header to move that window; its close button or Escape hides it.
 
 ## Privacy and storage
 

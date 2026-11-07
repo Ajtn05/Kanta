@@ -6,6 +6,11 @@ struct CombinedPlayer: View {
 
     private var settings: SettingsValues { preferences.values }
 
+    private var hasUntimedLyrics: Bool {
+        guard let lyrics = model.lyrics.lyrics else { return false }
+        return !lyrics.synchronized && !lyrics.instrumental && !lyrics.lines.isEmpty
+    }
+
     var body: some View {
         if let playback = model.playback {
             GeometryReader { geometry in
@@ -18,7 +23,7 @@ struct CombinedPlayer: View {
                         playerPane(playback, width: paneWidth, height: size.height - 32)
                             .frame(width: paneWidth)
                         Divider().padding(.vertical, 2)
-                        lyrics(height: size.height - 32)
+                        lyrics
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .padding(16)
@@ -37,8 +42,9 @@ struct CombinedPlayer: View {
                         if settings.showProgress {
                             ProgressStrip(playback: playback, seek: { model.send(.seek($0)) })
                         }
+                        lyricStatus
                         Divider()
-                        lyrics(height: size.height - 118)
+                        lyrics
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .padding(16)
@@ -53,8 +59,10 @@ struct CombinedPlayer: View {
         let metadataHeight = settings.showMetadata ? metadataSize * (showAlbum ? 3.1 : 2.3) + 6 : 0
         let controlSize: CGFloat = height > 260 ? 32 : 28
         let progressHeight: CGFloat = settings.showProgress ? (height > 270 ? 26 : 13) : 0
-        let gaps: CGFloat = 8 * (1 + (settings.showMetadata ? 1 : 0) + (settings.showProgress ? 1 : 0))
-        let cover = min(width, max(60, height - metadataHeight - controlSize - progressHeight - gaps))
+        let statusHeight: CGFloat = hasUntimedLyrics ? 14 : 0
+        let gaps: CGFloat = 8 * (1 + (settings.showMetadata ? 1 : 0) + (settings.showProgress ? 1 : 0)
+                                + (hasUntimedLyrics ? 1 : 0))
+        let cover = min(width, max(60, height - metadataHeight - controlSize - progressHeight - statusHeight - gaps))
         return VStack(spacing: 8) {
             SleeveArtwork(artwork: model.artwork, corner: 10)
                 .frame(width: cover, height: cover)
@@ -69,13 +77,28 @@ struct CombinedPlayer: View {
             if settings.showProgress {
                 ProgressStrip(playback: playback, seek: { model.send(.seek($0)) }, labels: height > 270)
             }
+            lyricStatus
         }
         .frame(maxHeight: .infinity)
     }
 
-    private func lyrics(height: CGFloat) -> some View {
-        let rows = max(1, Int((height - 16) / (min(18, settings.lyricSize) + settings.lyricSpacing + 5)))
-        return LyricPreview(model: model, preferences: preferences,
-                            maxLines: min(rows, settings.lyricLines), compact: true)
+    @ViewBuilder private var lyricStatus: some View {
+        if hasUntimedLyrics {
+            Label("No live lyrics", systemImage: "clock")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.secondary)
+                .help("These lyrics have no timing information and won’t follow playback.")
+        }
+    }
+
+    private var lyrics: some View {
+        GeometryReader { geometry in
+            let fill = settings.combinedLyricsLayout == .fill
+            let rows = max(1, Int((geometry.size.height - 16) / (min(18, settings.lyricSize) + settings.lyricSpacing + 5)))
+            LyricPreview(model: model, preferences: preferences,
+                         maxLines: fill ? .max : min(rows, settings.lyricLines), compact: !fill,
+                         fittingSize: fill ? geometry.size : nil)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 }

@@ -82,6 +82,10 @@ enum CombinedArrangement: String, Codable, CaseIterable {
     case automatic = "Automatic", horizontal = "Horizontal", vertical = "Vertical"
 }
 
+enum CombinedLyricsLayout: String, Codable, CaseIterable {
+    case compact = "Compact", fill = "Fill available space"
+}
+
 enum LyricAlignment: String, Codable, CaseIterable {
     case leading = "Left", center = "Center", trailing = "Right"
 }
@@ -134,6 +138,12 @@ struct SettingsValues: Codable, Equatable {
     // Optional storage lets existing preference files adopt new defaults without a reset.
     private var storedBackground: PlayerBackground?
     private var storedSeekOnLyricClick: Bool?
+    private var storedCombinedLyricsLayout: CombinedLyricsLayout?
+
+    var combinedLyricsLayout: CombinedLyricsLayout {
+        get { storedCombinedLyricsLayout ?? .compact }
+        set { storedCombinedLyricsLayout = newValue }
+    }
 
     var background: PlayerBackground {
         get { storedBackground ?? .material }
