@@ -125,6 +125,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         menu.addItem(menuLyrics)
         menu.addItem(.separator())
         menu.addItem(item("Preferences…", key: ",", icon: "gearshape") { [weak app] in app?.showSettings() })
+        menu.addItem(item("Run Setup…", icon: "slider.horizontal.3") { [weak app] in app?.showOnboarding() })
         let login = item("Launch at Login") { [weak app] in
             guard let app else { return }
             app.login.setEnabled(!app.login.enabled)

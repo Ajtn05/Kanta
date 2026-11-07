@@ -13,7 +13,8 @@ Kanta is a native macOS menu-bar companion for Spotify and Apple Music. Keep a r
 ## Features
 
 - **Spotify and Apple Music support.** Follow the active desktop player automatically, or choose a source yourself. Play, pause, skip, and seek from Kanta.
-- **Five player views.** Choose Artwork, Compact, Lyrics Only, Combined, or a separate Full Lyrics window.
+- **Six player views.** Choose Artwork, Album, Compact, Lyrics Only, Combined, or a separate Full Lyrics window. Album keeps its cover clear with controls in a separate area below it.
+- **Guided setup.** Choose your source, player, lyrics, appearance, and startup behavior during welcome. Run setup again from Preferences or the menu bar.
 - **Synchronized lyrics.** Fetch lyrics from LRCLIB, click a timed line to seek, and adjust timing globally or for an individual song.
 - **Responsive lyric windows.** Lyrics Only scales text to fit the width and reveals more lines as the window grows taller. Long lines wrap without an ellipsis. Combined keeps the title and artist centered in its player panel.
 - **Full Lyrics browsing.** Drag the header to move the window, scroll through a song, and return to the current line. Close it with the close button or Escape.
@@ -35,7 +36,7 @@ Download this repository with **Code → Download ZIP**, or clone it. Open Termi
 make run
 ```
 
-This builds and opens Kanta. Start a song in Spotify or Apple Music, allow Automation access when macOS asks, and use the waveform icon in the menu bar to choose a layout or open Preferences.
+This builds and opens Kanta. Complete the welcome setup, then start a song in Spotify or Apple Music and allow Automation access when macOS asks. Use the waveform icon in the menu bar to choose a layout, run setup again, or open Preferences. Setup saves your choices when you select **Open My Player**; closing it preserves your previous settings.
 
 To try the interface without a music app, build and open the offline demo:
 
@@ -78,6 +79,7 @@ Open either desktop music app and play a song. When prompted, grant Kanta Automa
 | Layout | Interaction |
 | --- | --- |
 | Artwork MiniPlayer | Hover to reveal controls. Double-click the sleeve to expand. |
+| Album MiniPlayer | Keep a clear square cover above track information and playback controls. Use the lyrics button or double-click the cover to open Full Lyrics. |
 | Compact MiniPlayer | Keep artwork, track details, and transport in a narrow strip. |
 | Lyrics Only | Resize horizontally to fit the type and vertically to show more or fewer lines. Set background opacity to zero for a transparent overlay. |
 | Combined MiniPlayer | Resize to adapt between a horizontal player and a stacked layout. |
@@ -85,11 +87,13 @@ Open either desktop music app and play a song. When prompted, grant Kanta Automa
 
 Choose a layout from the menu bar or right-click any interactive player. Drag the bottom-right grip to resize. Each layout remembers its own position and size. Toggle **Lyrics Click-Through** from the menu bar to regain mouse interaction with a click-through overlay.
 
-Windows stop shrinking at a usable minimum: Artwork 240 × 240, Compact 360 × 96, Lyrics Only 280 × 88, Combined 380 × 280 (520 points wide when set to Horizontal), and Full Lyrics 400 × 380 points. Saved windows smaller than these limits expand when reopened.
+Windows stop shrinking at a usable minimum: Artwork 240 × 240, Album 280 × 440, Compact 360 × 96, Lyrics Only 280 × 88, Combined 380 × 280 (520 points wide when set to Horizontal), and Full Lyrics 400 × 380 points. Saved windows smaller than these limits expand when reopened.
 
 Use **Find or Paste Lyrics…** to retry LRCLIB or save a local copy of plain or timestamped lyrics. In **Adjust Synchronization**, positive offsets make lines appear earlier and negative offsets make them appear later. Track offsets are saved separately from the global offset. In Preferences, set global shortcuts, choose a theme, adjust type and opacity, and enable menu-bar lyrics or Launch at Login.
 
-Choose Frosted, Solid, or Liquid Glass in Appearance. Liquid Glass uses the native effect on macOS 26 and later with a supported build toolchain, and falls back to Frosted on earlier systems. Turn off **Seek when clicking lyrics** in Lyrics preferences to keep lyric clicks from moving playback. Lyrics Only keeps at least 16 points of horizontal padding and 12 points of vertical padding, with a minimum window of 280 × 88 points. Long lines shrink to readable type, then wrap if necessary. In **Lyrics → Combined MiniPlayer**, choose **Compact** for a small preview with a set line count, or **Fill available space** to use your chosen font size and fit more lines as the window grows. Combined shows **No live lyrics** beside the playback area when only untimed lyrics are available. Drag the Full Lyrics header to move that window; its close button or Escape hides it.
+Choose Frosted, Solid, or Liquid Glass in Appearance. Liquid Glass uses the native effect on macOS 26 and later with a supported build toolchain, and falls back to Frosted on earlier systems. Turn off **Seek when clicking lyrics** in Lyrics preferences to keep lyric clicks from moving playback. Lyrics Only keeps at least 16 points of horizontal padding and 12 points of vertical padding, with a minimum window of 280 × 88 points. Long live lines shrink to readable type, then wrap if necessary. In **Lyrics → Combined MiniPlayer**, choose **Compact** for a small preview with a set line count, or **Fill available space** to use your chosen font size and fit more lines as the window grows.
+
+Live lyrics are always preferred. Enable **Show plain lyrics when live lyrics are unavailable** in Lyrics preferences to keep an untimed fallback. A small clock marks unsynced lyrics in Combined, Lyrics Only, and Full Lyrics; scroll to read them at your own pace. Turn the option off to show **Live lyrics unavailable** instead. Drag the Full Lyrics header to move that window; its close button or Escape hides it.
 
 ## Privacy and storage
 
@@ -106,7 +110,7 @@ Sources/Kanta/
   Players/     AppleScript providers, artwork cache, offline demo provider
   Lyrics/      LRC parsing, matching, network client, cache and overrides
   Windows/     Floating panels and display-aware placement
-  Views/       Five layouts, shared controls, onboarding and lyrics editor
+  Views/       Six layouts, shared controls, guided setup and lyrics editor
   Settings/    Preferences interface and persistence
   Utilities/   Local file storage
 Tests/         XCTest fixtures and integration checks with a mock player
@@ -121,7 +125,7 @@ For an offline UI check, launch the bundled demo after building.
 open -n dist/Kanta.app --args --demo --layout combined --full-lyrics
 ```
 
-The demo has synthetic music, original artwork and lyrics, and simulated transport controls. Valid mini-player layout names are `artwork`, `compact`, `lyrics`, and `combined`.
+The demo has synthetic music, original artwork and lyrics, and simulated transport controls. Valid mini-player layout names are `artwork`, `album`, `compact`, `lyrics`, and `combined`. Add `--setup` to walk through welcome configuration in the demo without changing saved preferences.
 
 The tests cover script compilation, mock provider transitions, interpolation, LRC parsing, synchronization offsets, lyrics matching, offline behavior, caches, settings, layout selection, and window placement. See [CONTRIBUTING.md](CONTRIBUTING.md) for the manual test checklist.
 

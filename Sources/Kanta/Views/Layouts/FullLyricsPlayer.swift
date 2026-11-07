@@ -14,6 +14,10 @@ struct FullLyricsPlayer: View {
             HStack {
                 Eyebrow(title: "Full Lyrics", icon: "text.alignleft")
                     .allowsHitTesting(false)
+                if preferences.values.showPlainLyrics, let lyrics = model.lyrics.lyrics, !lyrics.synchronized,
+                   !lyrics.instrumental, !lyrics.lines.isEmpty {
+                    UnsyncedLyricsIndicator()
+                }
                 Spacer()
                 Button(action: close) {
                     Image(systemName: "xmark.circle.fill")
@@ -47,12 +51,12 @@ struct FullLyricsPlayer: View {
                         .padding(.bottom, 10)
                 }
                 Divider()
-                if let lyrics = model.lyrics.lyrics, !lyrics.instrumental, !lyrics.lines.isEmpty {
+                if let lyrics = model.lyrics.lyrics.flatMap({ preferences.values.lyricsForDisplay($0) }), !lyrics.instrumental, !lyrics.lines.isEmpty {
                     lyricList(lyrics, playback: playback)
                 } else {
                     VStack(spacing: 11) {
                         Image(systemName: "text.quote").font(.title2).accessibilityHidden(true)
-                        Text(model.lyrics.message)
+                        Text(preferences.values.lyricMessage(for: model.lyrics))
                             .font(.callout)
                             .multilineTextAlignment(.center)
                         if model.lyrics != .loading {
@@ -78,9 +82,6 @@ struct FullLyricsPlayer: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: settings.lyricSpacing + 4) {
-                        if !lyrics.synchronized {
-                            Eyebrow(title: "Plain lyrics").foregroundStyle(.secondary)
-                        }
                         ForEach(lyrics.lines) { line in
                             let active = current == line.id
                             let label = Text(line.text.isEmpty ? "♪" : line.text)

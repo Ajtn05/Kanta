@@ -13,9 +13,13 @@ struct LyricsOverlay: View {
             // Keep padding and control space stable while hovering and resizing.
             let controlSpace = geometry.size.height >= 132 && options.lyricControls && !options.clickThrough
             let reveal = controlSpace && (hovered || options.showControls || voiceOver)
+            let unsynced = options.showPlainLyrics && (model.lyrics.lyrics.map { !$0.synchronized && !$0.instrumental && !$0.lines.isEmpty } ?? false)
             let lyricSize = CGSize(width: max(1, geometry.size.width - 32),
-                                   height: max(1, geometry.size.height - 24 - (controlSpace ? 31 : 0)))
+                                   height: max(1, geometry.size.height - 24 - (controlSpace ? 31 : 0) - (unsynced ? 20 : 0)))
             VStack(spacing: 6) {
+                if unsynced {
+                    UnsyncedLyricsIndicator().frame(maxWidth: .infinity, alignment: .trailing)
+                }
                 if model.playback == nil {
                     Text(model.availability.title)
                         .font(.system(size: 12, weight: .medium))

@@ -8,7 +8,7 @@ struct CombinedPlayer: View {
 
     private var hasUntimedLyrics: Bool {
         guard let lyrics = model.lyrics.lyrics else { return false }
-        return !lyrics.synchronized && !lyrics.instrumental && !lyrics.lines.isEmpty
+        return settings.showPlainLyrics && !lyrics.synchronized && !lyrics.instrumental && !lyrics.lines.isEmpty
     }
 
     var body: some View {
@@ -84,10 +84,7 @@ struct CombinedPlayer: View {
 
     @ViewBuilder private var lyricStatus: some View {
         if hasUntimedLyrics {
-            Label("No live lyrics", systemImage: "clock")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.secondary)
-                .help("These lyrics have no timing information and won’t follow playback.")
+            UnsyncedLyricsIndicator()
         }
     }
 

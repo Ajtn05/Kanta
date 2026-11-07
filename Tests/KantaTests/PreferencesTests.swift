@@ -11,16 +11,19 @@ final class PreferencesTests: XCTestCase {
         settings.background = .solid
         settings.seekOnLyricClick = false
         settings.combinedLyricsLayout = .fill
+        settings.showPlainLyrics = false
         let encoded = try JSONEncoder().encode(settings)
         let restored = try JSONDecoder().decode(SettingsValues.self, from: encoded)
         XCTAssertEqual(restored.background, .solid)
         XCTAssertFalse(restored.seekOnLyricClick)
         XCTAssertEqual(restored.combinedLyricsLayout, .fill)
+        XCTAssertFalse(restored.showPlainLyrics)
 
         var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
         legacy.removeValue(forKey: "storedBackground")
         legacy.removeValue(forKey: "storedSeekOnLyricClick")
         legacy.removeValue(forKey: "storedCombinedLyricsLayout")
+        legacy.removeValue(forKey: "storedShowPlainLyrics")
         let migrated = try JSONDecoder().decode(SettingsValues.self, from: JSONSerialization.data(withJSONObject: legacy))
         XCTAssertEqual(migrated.theme, .dark)
         XCTAssertEqual(migrated.layout, .lyrics)
@@ -28,6 +31,35 @@ final class PreferencesTests: XCTestCase {
         XCTAssertEqual(migrated.background, .material)
         XCTAssertTrue(migrated.seekOnLyricClick)
         XCTAssertEqual(migrated.combinedLyricsLayout, .compact)
+        XCTAssertTrue(migrated.showPlainLyrics)
+    }
+
+    func testPlainLyricsAreOptionalWhileLiveLyricsStayPreferred() {
+        let timed = LRCParser.parse("[00:01]First line\n[00:03]Second line")
+        let plain = LRCParser.parse("First line\nSecond line")
+        let instrumental = Lyrics(lines: [], instrumental: true)
+        var settings = SettingsValues()
+        XCTAssertEqual(settings.lyricsForDisplay(timed), timed)
+        XCTAssertEqual(settings.lyricsForDisplay(plain), plain)
+        settings.showPlainLyrics = false
+        XCTAssertEqual(settings.lyricsForDisplay(timed), timed)
+        XCTAssertNil(settings.lyricsForDisplay(plain))
+        XCTAssertEqual(settings.lyricMessage(for: .available(plain)), "Live lyrics unavailable")
+        XCTAssertEqual(settings.lyricsForDisplay(instrumental), instrumental)
+        XCTAssertEqual(settings.lyricMessage(for: .available(instrumental)), "Instrumental track")
+        XCTAssertEqual(settings.lyricMessage(for: .loading), LyricsStatus.loading.message)
+    }
+
+    @MainActor
+    func testAlbumLayoutCanBeSelectedCycledAndRestored() async throws {
+        let preferences = Preferences(defaults: nil)
+        preferences.select(.artwork)
+        preferences.cycleLayout()
+        XCTAssertEqual(preferences.values.layout, .album)
+        let restored = try JSONDecoder().decode(SettingsValues.self, from: JSONEncoder().encode(preferences.values))
+        XCTAssertEqual(restored.layout, .album)
+        preferences.cycleLayout()
+        XCTAssertEqual(preferences.values.layout, .compact)
     }
 
     @MainActor
@@ -48,6 +80,7 @@ final class PreferencesTests: XCTestCase {
         original.select(.lyrics)
         original.values.source = .music
         original.values.combinedLyricsLayout = .fill
+        original.values.showPlainLyrics = false
         original.values.globalOffset = 0.1
         original.adjustOffset(for: track, by: 0.25)
         original.adjustOffset(for: track, by: 0.1)
@@ -58,6 +91,7 @@ final class PreferencesTests: XCTestCase {
         XCTAssertEqual(restored.values.layout, .lyrics)
         XCTAssertEqual(restored.values.source, .music)
         XCTAssertEqual(restored.values.combinedLyricsLayout, .fill)
+        XCTAssertFalse(restored.values.showPlainLyrics)
         XCTAssertEqual(restored.offset(for: track), 0.45, accuracy: 0.0001)
         XCTAssertEqual(restored.frame(for: .artwork), artwork)
         XCTAssertEqual(restored.frame(for: .lyrics), lyrics)

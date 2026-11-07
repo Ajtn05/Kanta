@@ -84,6 +84,7 @@ struct PlayerRoot: View {
         } else {
             switch layout {
             case .artwork: ArtworkPlayer(model: model, settings: options, expand: { select(.combined) })
+            case .album: AlbumPlayer(model: model, settings: options, fullLyrics: fullLyrics)
             case .compact: CompactPlayer(model: model, settings: options)
             case .lyrics: LyricsOverlay(model: model, preferences: preferences)
             case .combined: CombinedPlayer(model: model, preferences: preferences)

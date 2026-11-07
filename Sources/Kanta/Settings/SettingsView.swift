@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var preferences: Preferences
     @ObservedObject var login: LoginItem
+    var configure: (() -> Void)?
     @ViewState private var selection = "General"
 
     var body: some View {
@@ -29,6 +30,7 @@ struct SettingsView: View {
                 }
                 Toggle("Launch at Login", isOn: Binding(get: { login.enabled }, set: login.setEnabled))
                 Toggle("Show Kanta in the Dock", isOn: $preferences.values.showDock)
+                if let configure { Button("Run Setup Again…", action: configure) }
                 if login.needsApproval {
                     Button("Review Login Items…", action: login.openSettings)
                 }
@@ -96,6 +98,11 @@ struct SettingsView: View {
 
     private var lyrics: some View {
         Form {
+            Section("Availability") {
+                Toggle("Show plain lyrics when live lyrics are unavailable", isOn: $preferences.values.showPlainLyrics)
+                Text("Live lyrics stay preferred. A small clock marks unsynced lyrics, which you can scroll to read.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Typography") {
                 settingSlider("Font size", value: $preferences.values.lyricSize, range: 13...36, step: 1, format: .number)
                 settingSlider("Line spacing", value: $preferences.values.lyricSpacing, range: 0...18, step: 1, format: .number)

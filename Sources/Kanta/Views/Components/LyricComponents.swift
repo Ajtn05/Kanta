@@ -55,55 +55,82 @@ struct LyricPreview: View {
     private var options: SettingsValues { preferences.values }
 
     var body: some View {
-        if let lyrics = model.lyrics.lyrics, !lyrics.instrumental, !lyrics.lines.isEmpty {
-            let offset = preferences.offset(for: model.track)
-            LyricTimeline(playback: model.playback, lyrics: lyrics, offset: offset) { current in
-                if let fittingSize {
-                    let rows = LyricPreviewSizing.rows(texts: lyrics.lines.map(\.text), current: current,
-                        synchronized: lyrics.synchronized, size: fittingSize,
-                        fontSize: options.lyricSize, spacing: options.lyricSpacing)
-                    if LyricPreviewSizing.totalHeight(rows, spacing: options.lyricSpacing) > fittingSize.height {
-                        // An unusually long line can wrap at the minimum font size without losing text.
-                        ScrollView { fittedRows(rows, lyrics: lyrics, current: current, offset: offset) }
-                            .frame(height: fittingSize.height)
-                    } else {
-                        fittedRows(rows, lyrics: lyrics, current: current, offset: offset)
-                    }
-                } else {
-                    let indexes = visibleIndexes(current: current, count: lyrics.lines.count, synced: lyrics.synchronized)
-                    VStack(spacing: options.lyricSpacing) {
-                        if lyrics.synchronized && current == nil && maxLines == 1 {
-                            placeholder("Waiting for the first line", icon: "ellipsis")
-                        }
-                        ForEach(indexes, id: \.self) { index in
-                            let line = lyrics.lines[index]
-                            let active = index == current || !lyrics.synchronized
-                            let text = line.text.isEmpty ? "♪" : line.text
-                            let label = Text(text)
-                                .font(.system(size: fontSize(active: active), weight: active ? .semibold : .medium))
-                                .foregroundStyle(active ? options.highlight.color(dark: scheme == .dark) : .secondary)
-                                .multilineTextAlignment(options.lyricAlignment.text)
-                                .lineLimit(maxLines == 1 && wrapsSingleLine ? 2 : 1)
-                                .minimumScaleFactor(compact ? 0.8 : 1)
-                                .frame(maxWidth: .infinity, alignment: options.lyricAlignment.frame)
-                            if options.seekOnLyricClick, let time = lyrics.seekPosition(for: line, offset: offset) {
-                                Button { model.send(.seek(time)) } label: { label.contentShape(Rectangle()) }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel(line.text.isEmpty ? "Instrumental passage" : text)
-                                    .accessibilityAddTraits(active ? .isSelected : [])
-                                    .help("Seek to this line")
-                                    .transition(.opacity)
-                            } else {
-                                label.accessibilityAddTraits(active ? .isSelected : [])
-                                    .transition(.opacity)
-                            }
-                        }
-                    }
-                    .animation(options.animate && !reduceMotion ? .easeInOut(duration: 0.22) : nil, value: current)
-                }
+        if let lyrics = model.lyrics.lyrics.flatMap({ options.lyricsForDisplay($0) }), !lyrics.instrumental, !lyrics.lines.isEmpty {
+            if !lyrics.synchronized {
+                plainLyrics(lyrics)
+            } else {
+                timedLyrics(lyrics)
             }
         } else {
-            placeholder(model.lyrics.message, icon: "music.note")
+            placeholder(options.lyricMessage(for: model.lyrics), icon: "music.note")
+        }
+    }
+
+    private func timedLyrics(_ lyrics: Lyrics) -> some View {
+        let offset = preferences.offset(for: model.track)
+        return LyricTimeline(playback: model.playback, lyrics: lyrics, offset: offset) { current in
+            if let fittingSize {
+                let rows = LyricPreviewSizing.rows(texts: lyrics.lines.map(\.text), current: current,
+                    synchronized: lyrics.synchronized, size: fittingSize,
+                    fontSize: options.lyricSize, spacing: options.lyricSpacing)
+                if LyricPreviewSizing.totalHeight(rows, spacing: options.lyricSpacing) > fittingSize.height {
+                    // An unusually long line can wrap at the minimum font size without losing text.
+                    ScrollView { fittedRows(rows, lyrics: lyrics, current: current, offset: offset) }
+                        .frame(height: fittingSize.height)
+                } else {
+                    fittedRows(rows, lyrics: lyrics, current: current, offset: offset)
+                }
+            } else {
+                let indexes = visibleIndexes(current: current, count: lyrics.lines.count, synced: lyrics.synchronized)
+                VStack(spacing: options.lyricSpacing) {
+                    if lyrics.synchronized && current == nil && maxLines == 1 {
+                        placeholder("Waiting for the first line", icon: "ellipsis")
+                    }
+                    ForEach(indexes, id: \.self) { index in
+                        let line = lyrics.lines[index]
+                        let active = index == current || !lyrics.synchronized
+                        let text = line.text.isEmpty ? "♪" : line.text
+                        let label = Text(text)
+                            .font(.system(size: fontSize(active: active), weight: active ? .semibold : .medium))
+                            .foregroundStyle(active ? options.highlight.color(dark: scheme == .dark) : .secondary)
+                            .multilineTextAlignment(options.lyricAlignment.text)
+                            .lineLimit(maxLines == 1 && wrapsSingleLine ? 2 : 1)
+                            .minimumScaleFactor(compact ? 0.8 : 1)
+                            .frame(maxWidth: .infinity, alignment: options.lyricAlignment.frame)
+                        if options.seekOnLyricClick, let time = lyrics.seekPosition(for: line, offset: offset) {
+                            Button { model.send(.seek(time)) } label: { label.contentShape(Rectangle()) }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(line.text.isEmpty ? "Instrumental passage" : text)
+                                .accessibilityAddTraits(active ? .isSelected : [])
+                                .help("Seek to this line")
+                                .transition(.opacity)
+                        } else {
+                            label.accessibilityAddTraits(active ? .isSelected : [])
+                                .transition(.opacity)
+                        }
+                    }
+                }
+                .animation(options.animate && !reduceMotion ? .easeInOut(duration: 0.22) : nil, value: current)
+            }
+        }
+    }
+
+    private func plainLyrics(_ lyrics: Lyrics) -> some View {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: options.lyricSpacing) {
+                    ForEach(lyrics.lines) { line in
+                        Text(line.text.isEmpty ? "♪" : line.text)
+                            .font(.system(size: compact ? min(18, options.lyricSize) : options.lyricSize, weight: .medium))
+                            .multilineTextAlignment(options.lyricAlignment.text)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: options.lyricAlignment.frame)
+                    }
+                }
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+            }
+            .id(lyrics.lines.map(\.text))
         }
     }
 
@@ -156,5 +183,16 @@ struct LyricPreview: View {
             .multilineTextAlignment(options.lyricAlignment.text)
             .lineLimit(wrapsSingleLine ? 2 : 1)
             .frame(maxWidth: .infinity, alignment: options.lyricAlignment.frame)
+    }
+}
+
+struct UnsyncedLyricsIndicator: View {
+    var body: some View {
+        Image(systemName: "clock")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.secondary)
+            .frame(width: 14, height: 14)
+            .help("Unsynced lyrics — scroll to read. These lines won’t follow playback.")
+            .accessibilityLabel("Unsynced lyrics")
     }
 }

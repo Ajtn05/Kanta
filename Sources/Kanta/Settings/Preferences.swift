@@ -2,14 +2,15 @@ import AppKit
 import Combine
 
 enum PlayerLayout: String, Codable, CaseIterable, Identifiable {
-    case artwork, compact, lyrics, combined, fullLyrics
+    case artwork, album, compact, lyrics, combined, fullLyrics
     var id: Self { self }
 
-    static var miniPlayers: [Self] { [.artwork, .compact, .lyrics, .combined] }
+    static var miniPlayers: [Self] { [.artwork, .album, .compact, .lyrics, .combined] }
 
     var title: String {
         switch self {
         case .artwork: return "Artwork MiniPlayer"
+        case .album: return "Album MiniPlayer"
         case .compact: return "Compact MiniPlayer"
         case .lyrics: return "Lyrics Only"
         case .combined: return "Combined MiniPlayer"
@@ -20,6 +21,7 @@ enum PlayerLayout: String, Codable, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .artwork: return "square"
+        case .album: return "rectangle.portrait"
         case .compact: return "rectangle"
         case .lyrics: return "captions.bubble"
         case .combined: return "rectangle.split.2x1"
@@ -30,6 +32,7 @@ enum PlayerLayout: String, Codable, CaseIterable, Identifiable {
     var minimumSize: CGSize {
         switch self {
         case .artwork: return CGSize(width: 240, height: 240)
+        case .album: return CGSize(width: 280, height: 440)
         case .compact: return CGSize(width: 360, height: 96)
         case .lyrics: return CGSize(width: 280, height: 88)
         case .combined: return CGSize(width: 380, height: 280)
@@ -40,6 +43,7 @@ enum PlayerLayout: String, Codable, CaseIterable, Identifiable {
     var suggestedSize: CGSize {
         switch self {
         case .artwork: return CGSize(width: 288, height: 288)
+        case .album: return CGSize(width: 360, height: 520)
         case .compact: return CGSize(width: 410, height: 96)
         case .lyrics: return CGSize(width: 400, height: 140)
         case .combined: return CGSize(width: 540, height: 300)
@@ -139,6 +143,23 @@ struct SettingsValues: Codable, Equatable {
     private var storedBackground: PlayerBackground?
     private var storedSeekOnLyricClick: Bool?
     private var storedCombinedLyricsLayout: CombinedLyricsLayout?
+    private var storedShowPlainLyrics: Bool?
+
+    var showPlainLyrics: Bool {
+        get { storedShowPlainLyrics ?? true }
+        set { storedShowPlainLyrics = newValue }
+    }
+
+    func lyricsForDisplay(_ lyrics: Lyrics) -> Lyrics? {
+        lyrics.synchronized || lyrics.instrumental || showPlainLyrics ? lyrics : nil
+    }
+
+    func lyricMessage(for status: LyricsStatus) -> String {
+        if let lyrics = status.lyrics, lyricsForDisplay(lyrics) == nil {
+            return "Live lyrics unavailable"
+        }
+        return status.message
+    }
 
     var combinedLyricsLayout: CombinedLyricsLayout {
         get { storedCombinedLyricsLayout ?? .compact }

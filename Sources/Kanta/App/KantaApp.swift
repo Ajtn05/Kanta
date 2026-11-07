@@ -71,7 +71,7 @@ final class KantaApp: NSObject, NSApplicationDelegate {
             })
         }
 
-        if options.hasOnboarded || demo {
+        if (options.hasOnboarded || demo) && !CommandLine.arguments.contains("--setup") {
             start()
             if demo && CommandLine.arguments.contains("--full-lyrics") { windows.showFull() }
         } else {
@@ -140,11 +140,18 @@ final class KantaApp: NSObject, NSApplicationDelegate {
     }
 
     func showSettings() {
-        showWindow("settings", title: "Kanta Preferences", content: SettingsView(preferences: preferences, login: login))
+        showWindow("settings", title: "Kanta Preferences", content: SettingsView(preferences: preferences, login: login,
+            configure: { [weak self] in self?.showOnboarding() }))
     }
 
-    private func showOnboarding() {
-        showWindow("welcome", title: "Welcome to Kanta", content: Onboarding(login: login) { [weak self] in
+    func showOnboarding() {
+        if let welcome = auxiliary["welcome"], welcome.isVisible {
+            welcome.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        auxiliary.removeValue(forKey: "welcome")
+        showWindow("welcome", title: "Welcome to Kanta", content: Onboarding(preferences: preferences, login: login) { [weak self] in
             guard let self else { return }
             self.preferences.values.hasOnboarded = true
             self.auxiliary["welcome"]?.close()
